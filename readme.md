@@ -1,11 +1,20 @@
 
 ![alt text](image.png)
 
-🤖 I just built and open-sourced a custom Retrieval-Augmented Generation (RAG) pipeline! 📂
-To understand the core architecture behind grounding Large Language Models on private data, I built AgenticRAG—a modular system designed to completely eliminate AI hallucinations.
-Here is the exact technical workflow under the hood:
-***1️⃣ Ingestion: Text documents are parsed and broken down into small, optimized chunks.
-***2️⃣ Embedding & Vector Storage: These chunks are processed by Chroma DB, which automatically generates vector embeddings underneath to index the data.
-***3️⃣ Semantic Retrieval: When a query is submitted, the pipeline retrieves the top 3 most relevant chunks based on vector cosine similarity.
-***4️⃣ Grounded Generation: These 3 chunks are injected directly into the LLM context window as a strict reference frame.
-By pairing this context with a zero-temperature setting (temperature=0.0) and strict system prompt guidelines, the LLM is forced to respond using only the provided text, effectively preventing hallucinations
+
+### 1. Document Ingestion & Chunking (`ingestion.py`)
+* Raw text documents are loaded from the `/data` directory.
+* The files are processed and parsed into small, semantic text chunks to fit within optimal context constraints.
+
+### 2. Embedding Generation & Vector Storage (`indexing.py`)
+* Text chunks are passed to Chroma DB.
+* Underneath, the system leverages `sentence-transformers` to automatically generate dense vector embeddings for each chunk and index them for fast lookups.
+
+### 3. Semantic Retrieval (`retrieval.py`)
+* When a user submits a query, the system converts the query into an embedding.
+* It performs a semantic search across the vector store to retrieve the **top 3 chunks** based on vector cosine similarity.
+
+### 4. Grounded Context Generation (`main.py`)
+* The top 3 retrieved chunks are injected directly into the LLM context window alongside the original user question.
+* To completely eliminate hallucinations, the LLM is tightly constrained with a system prompt instructing it to rely *only* on the provided context, paired with a deterministic configuration (`temperature=0.0`). If the answer is not present in the context, the model explicitly outputs `"I don't know."`
+
